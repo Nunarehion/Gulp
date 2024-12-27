@@ -1,7 +1,10 @@
 const { src, dest, series, parallel, watch } = require("gulp");
 
 const htmlmin = require("gulp-htmlmin");
-const fileinclude = require("gulp-file-include");
+// const fileinclude = require("gulp-file-include");
+const pug = require("gulp-pug");
+const rename = require("gulp-rename");
+
 const sourcemaps = require("gulp-sourcemaps");
 
 const gulpif = require("gulp-if");
@@ -56,11 +59,23 @@ const path = {
 const html = () => {
 	return src(path.src.html)
 		.pipe(
-			fileinclude({
-				prefix: "@",
-				basepath: "@file",
+			gulpif(
+				isProd,
+				htmlmin({ collapseWhitespace: true, removeComments: true })
+			)
+		)
+		.pipe(dest(path.build.html))
+		.pipe(browserSync.reload({ stream: true }));
+};
+
+const pugTask = () => {
+	return src(srcPath + "/template/pages/**/*.pug")
+		.pipe(
+			pug({
+				pretty: isProd,
 			})
 		)
+		.pipe(rename({ extname: ".html" }))
 		.pipe(
 			gulpif(
 				isProd,
@@ -171,19 +186,19 @@ const serve = () => {
 
 const dev = series(
 	clean,
-	parallel(html, css, js, img, video, svg, svgToSprite, vendors, fonts),
+	parallel(pugTask, css, js, img, video, svg, svgToSprite, vendors, fonts),
 	serve
 );
 
 const build = series(
 	clean,
-	parallel(html, css, js, img, video, svg, svgToSprite, vendors, fonts)
+	parallel(pugTask, css, js, img, video, svg, svgToSprite, vendors, fonts)
 );
 
 const preview = series(serve);
 
 const watchFiles = () => {
-	watch([srcPath + "**/*.html"], html);
+	watch([srcPath + "**/*.pug"], pugTask);
 	watch([path.src.css], css);
 	watch([path.src.js], js);
 	watch([path.src.img], img);
