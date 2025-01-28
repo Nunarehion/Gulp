@@ -4,8 +4,10 @@
 	box-sizing: border-box;
 }
 
-body {
+body,
+html {
 	margin: 0;
+	background: white;
 
 	-webkit-text-size-adjust: 100%;
 	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
